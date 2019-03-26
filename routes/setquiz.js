@@ -1,8 +1,7 @@
-const express = require('express');
-const app = require('../app.js');
-const checkauth = require('../utils/reqAuth.js');
-
-router = express.Router();
+var express = require('express');
+var router = express.Router();
+var app = require('../app.js');
+var checkauth = require('../utils/reqAuth.js');
 
 router.post('/', async (req, res) => {
     try {
@@ -25,15 +24,17 @@ router.post('/', async (req, res) => {
             req.body.userData = temp;
             console.log('1st base');
             //console.log(req);
-            result = await setUserInfo(req, res)
+            result = await questionnaire(req, res)
         }
     }catch(error){
         console.dir(error);
         return res.status(400);
+
     }
 });
 
-async function setUserInfo(req,res){
+async function questionnaire(req,res){
+    console.log('dafaq is happening?');
     var gender = req.body.gendr;
     var dob = req.body.dob;
     var permaddr = req.body.permadd;
@@ -56,6 +57,9 @@ async function setUserInfo(req,res){
     var hiv = req.body.hiv;
     var donatefreq = req.body.frequency;
     var availability = req.body.available;
+    var firstlogindone = req.body.firstlogin || '0';
+    console.log('2nd base')
+    console.log(req.body.dob);
     var quiz ={
         gender : gender,
         DOB : dob,
@@ -79,17 +83,22 @@ async function setUserInfo(req,res){
         HIV : hiv,
         donation_frequency : donatefreq,
         Available : availability,
+        firstlogindone : '1'
     };
     console.log(quiz);
 
     var email = req.body.userData.email;
     console.log(email)
-    if(!((gender === 'M' | gender === 'F') & dob & district & donatefreq & bloodtype & permaddr & availability)){
+    if(firstlogindone === '1' & (gender === 'M' | gender === 'F') & dob & district & donatefreq ){
+
+
+    }
+    else if(firstlogindone === '1'){
         return res.status(400).json({
             message:"missing required information"
         })
-
     }
+
     else{
         try{
             console.log('3rd base')

@@ -9,14 +9,14 @@ var indexRouter = require('./routes/index');
 var cors = require('cors');
 var pug = require('pug');
 //var mongoose = require('mongoose');
-
+require('dotenv').config();
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
 
-const mongoDatabase = 'OnlineBloodDonationSystem';
-const url = "mongodb://localhost:27017/";// view engine setup
+const mongoDatabase = process.env.DB_NAME; //'OnlineBloodDonationSystem';
+const url = process.env.DB_LINK; //"mongodb://localhost:27017/";// view engine setup
 
-app.use(cors({origin: 'http://localhost:4200'}));
+app.use(cors({origin: process.env.LOCAL_HOST+':'+process.env.PORT})); //'http://localhost:4200'
 
 app.use(bodyparser.urlencoded({extended: true}));
 app.use(bodyparser.json());
@@ -52,6 +52,9 @@ app.use('/', indexRouter);
 //app.use('/users', usersRouter);
 app.use('/createUser', require('./routes/createUser.js'));
 app.use('/auth', require('./utils/auth.js'));
+app.use('/search', require('./search/searchhandler.js'));
+app.use('/quiz', require('./routes/setquiz.js'));
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

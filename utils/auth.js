@@ -4,14 +4,14 @@ var jwt = require('jsonwebtoken');
 var app = require('../app.js');
 var bcrypt = require('bcryptjs');
 var addAuth = require('../utils/addAuth.js');
-
+require('dotenv').config();
 
 router.post('/',async function(req,res) {
     var memail = req.body.email;
     var mpass = req.body.pass;
-    var salthash;
+    //var salthash;
     var userpass;
-    var secretkey = "secret"; //MUST BE MOVED TO A SEPARATE FILE CONTAINING ENVIRONMENT VARIABLES
+    var secretkey = process.env.JWT_KEY; //MUST BE MOVED TO A SEPARATE FILE CONTAINING ENVIRONMENT VARIABLES
     console.log('auth', memail, mpass);
 
     if (memail.indexOf('@') === -1) { //Checking for valid email address format
@@ -54,13 +54,24 @@ router.post('/',async function(req,res) {
                 }
             );
             addAuth.addAuth(req.body.email,token);
-            return res.status(200).json({           //passing the success and the token to the user.
-                message: "Authentication Successful",
-                token: token
-            });
+            if(userpass.firstlogindone){
+                return res.status(200).json({           //passing the success and the token to the user.
+                    message: "Authentication Successful",
+                    token: token
+                });
+            }
+            else{                                       //if the first login of the user redirecting to the  questionnaire page
+                return res.status(303).json({
+                    token: token,
+                    message: "redirect to the link. Add firstlogindone to the body",
+                    link: "/quiz",
+                    firstlogindone: '0'
+                })
+            }
+
         }
     } catch (error) {                               //error handling for the promise of bcrypt.compare
-        console.dir(error),
+        console.dir(error);
         console.log("or is it this one?");
         return res.status(401).json({
             message: "Authentication Failure"

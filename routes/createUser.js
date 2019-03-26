@@ -3,14 +3,24 @@ var router = express.Router();
 //var authutil = require('../utils/authutil.js');
 var bcrypt = require('bcryptjs');
 //var mongodb = require('mongodb');
-var app = require("../app.js")
+var app = require("../app.js");
 
 
 router.post('/',async function (req,res) {
     memail = req.body.email;
     mpass = req.body.pass;
     contactnumber = req.body.contact;
+    fname = req.body.fname;
+    lname = req.body.lname;
+    nic = req.body.NIC;
     var salthash;
+
+    //check for missing input fields
+    if(memail.length === 0 || mpass.length === 0 || contactnumber.length === 0 || fname.length === 0 || lname.length === 0 || nic.length === 0){
+        return res.status(400).json({
+            message: "missing required information"
+        })
+    }
 
     if(mpass.length < 8 ){                  //password length check
         return res.status(400).json({
@@ -18,7 +28,7 @@ router.post('/',async function (req,res) {
         })
     }
 
-    if(memail.indexOf('@') == -1){          //email format check
+    if(memail.indexOf('@') === -1){          //email format check
        return res.status(400).json({error:"Please Enter a valid email address"});
     }
     console.log("create user account", memail,mpass);
@@ -54,9 +64,8 @@ router.post('/',async function (req,res) {
     }catch(error){
         return res.status(400).json({result: "db not existing", error: error})  //callback error handling of the database fetch
     }
-
     console.log("rkakakakaka");
-    user = {email:memail, pass:salthash, contact_number:contactnumber};         //object passed as a document
+    user = {email:memail, pass:salthash, contact_number:contactnumber, name:fname+' '+lname, NIC:nic, firstlogindone: false};         //object passed as a document
 
     try{
         dbres = await app.db.collection("users").insertOne(user);               //updating the database
