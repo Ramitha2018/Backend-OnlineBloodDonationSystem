@@ -7,11 +7,13 @@ var addAuth = require('../utils/addAuth.js');
 require('dotenv').config();
 
 router.post('/',async function(req,res) {
+    console.log(req.get('protocol'));
     var memail = req.body.email;
     var mpass = req.body.pass;
     //var salthash;
     var userpass;
     var secretkey = process.env.JWT_KEY; //MUST BE MOVED TO A SEPARATE FILE CONTAINING ENVIRONMENT VARIABLES
+   // console.log(req)
     console.log('auth', memail, mpass);
 
     if (memail.indexOf('@') === -1) { //Checking for valid email address format
@@ -21,8 +23,13 @@ router.post('/',async function(req,res) {
         userpass = await app.db.collection('users').findOne({email: memail}); //Getting the user's information collection from the database if exists
         console.log(userpass);
         console.log("-----------")
-        if (userpass) {                             //If user's email exists, the password is prepared for comparison
-            userpass = userpass.pass;
+        if (userpass) {
+            if(userpass.isVerified == 0){           // Check for Email verification
+                return res.code(303).json({
+                    message: 'Email not verified'
+                })
+            }
+            userpass = userpass.pass;               //If user's email exists, the password is prepared for comparison
             console.log(userpass);
 
         }

@@ -1,18 +1,21 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 //var authutil = require('../utils/authutil.js');
-var bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 //var mongodb = require('mongodb');
-var app = require("../app.js");
+const app = require("../app.js");
+const sendmail = require('../utils/sendEmail.js');
 
+//console.log("verifymail",verifymail);
 
 router.post('/',async function (req,res) {
-    memail = req.body.email;
-    mpass = req.body.pass;
-    contactnumber = req.body.contact;
-    fname = req.body.fname;
-    lname = req.body.lname;
-    nic = req.body.NIC;
+    const memail = req.body.email;
+    const mpass = req.body.pass;
+    const contactnumber = req.body.contact;
+    const fname = req.body.fname;
+    const lname = req.body.lname;
+    const nic = req.body.NIC;
+    const acctype = req.body.type; //PUT THIS SOMEWHERE USEFUL
     var salthash;
 
     //check for missing input fields
@@ -33,7 +36,7 @@ router.post('/',async function (req,res) {
     }
     console.log("create user account", memail,mpass);
     try {
-        var salthash = await new Promise((resolve,reject) =>{ //salted hash of the user password
+        salthash = await new Promise((resolve,reject) =>{ //salted hash of the user password
             bcrypt.hash(mpass, 10, function(err, hash){
                 if(err) reject(err);
                 resolve(hash);
@@ -65,20 +68,52 @@ router.post('/',async function (req,res) {
         return res.status(400).json({result: "db not existing", error: error})  //callback error handling of the database fetch
     }
     console.log("rkakakakaka");
-    user = {email:memail, pass:salthash, contact_number:contactnumber, name:fname+' '+lname, NIC:nic, firstlogindone: false};         //object passed as a document
+    /*user = {
+        email:memail,
+        pass:salthash,
+        contact_number:contactnumber,
+        name:fname+' '+lname,
+        NIC:nic,
+        isVerified: '0',
+        firstlogindone: '0'
+    };         //object passed as a document*/
 
     try{
-        dbres = await app.db.collection("users").insertOne(user);               //updating the database
+
+        var temp = await sendmail(req,res); //NOT STOPPING HERE
+        console.log(temp);
+
+        dbres = await app.db.collection("users").insertOne({
+
+            email:memail,
+            pass:salthash,
+            contact_number:contactnumber,
+            name:fname+' '+lname,
+            NIC:nic,
+            isVerified: '0',
+            firstlogindone: '0',
+            verify_id: temp});               //updating the database
+
         console.log("inserted?");
         console.log("user created",memail,mpass);
-        //console.log(res);
-        return res.status(200).json({
-            code:"200",
-            message:"Successfully created user"
-        });
-    }catch{
-        res.status(409).json({result:409});
-        return
+        console.log(dbres);
+
+        if(temp) {
+            return res.status(200).json({
+                code: "200",
+                message: "Successfully created user"
+            });
+        }else{
+            return res.status(400).json({
+                code: "400",
+                message: "error in db access"
+            })
+        }
+
+    }catch(error){
+        console.log(error);
+
+        return res.status(409).json({result:409, error:error.name});
     }
 });
 

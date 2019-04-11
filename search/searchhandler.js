@@ -11,6 +11,7 @@ router.post('/', async function (req , res){
     var userarea = req.body.region;
 
     var searchreq = {
+        req_email: req.body.email,
         bloodtype: bloodtype,
         district: userloc
     }

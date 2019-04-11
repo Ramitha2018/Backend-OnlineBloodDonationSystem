@@ -6,7 +6,7 @@ var secret = process.env.JWT_KEY; // FROM ENVIRONMENTAL VARIABLES
 
 module.exports = async function auth(req,res){
     try{
-        const token = req.headers.authorization; /** Add the token under "authorization bearer" header to the request */
+        const token = req.headers.Authorization.split(" ")[1]; /** Add the token under "Authorization bearer" header to the request */
         console.log(token);
         console.log(secret);
         const decoded = jwt.verify(token, secret);
@@ -15,7 +15,7 @@ module.exports = async function auth(req,res){
     }catch(error){
         console.dir(error);
         if(error.name = 'TokenExpiredError'){
-            const token = req.headers.authoriztion;
+            const token = req.headers.Authorization.split(" ")[1];
             const userdetail = jwt.decode(token, secret);
             var email = userdetail.email;
             return addauth.removeAuth(email);
