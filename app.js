@@ -1,25 +1,24 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var bodyparser = require('body-parser');
-var indexRouter = require('./routes/index');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+//var bodyparser = require('body-parser');
+const indexRouter = require('./routes/index');
 //var usersRouter = require('./routes/users');
-var cors = require('cors');
-var pug = require('pug');
-//var mongoose = require('mongoose');
+const cors = require('cors');
+const pug = require('pug');
 require('dotenv').config();
-var app = express();
-var MongoClient = require('mongodb').MongoClient;
+const app = express();
+const MongoClient = require('mongodb').MongoClient;
 
 const mongoDatabase = process.env.DB_NAME; //'OnlineBloodDonationSystem';
 const url = process.env.DB_LINK; //"mongodb://localhost:27017/";// view engine setup
 
 app.use(cors({origin: process.env.LOCAL_HOST+':'+process.env.ORIGIN_PORT})); //'http://localhost:2401'
 
-app.use(bodyparser.urlencoded({extended: true}));
-app.use(bodyparser.json());
+//app.use(bodyparser.urlencoded({extended: true}));
+//app.use(bodyparser.json());
 
 //console.log(url+mongoDatabase)
 /**mongoose.connect(url+mongoDatabase,{
@@ -50,11 +49,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 //app.use('/users', usersRouter);
-app.use('/createUser', require('./routes/createUser.js'));
+app.use('/createUser', [require('./routes/createUser.js'), require('./search/searchhandler.js')] );
 app.use('/auth', require('./utils/auth.js'));
 app.use('/search', require('./search/searchhandler.js'));
 app.use('/quiz', require('./routes/setquiz.js'));
 app.use('/verify', require('./utils/verifyEmail.js'));
+app.use('/deleteUser', require('./routes/deleteUser.js'));
+app.use('/getUser', require('./routes/getProfile.js'));
 
 
 // catch 404 and forward to error handler

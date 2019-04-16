@@ -4,11 +4,12 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 //var mongodb = require('mongodb');
 const app = require("../app.js");
-const sendmail = require('../utils/sendEmail.js');
+const sendmail = require('../utils/sendVerifyEmail.js');
+const sendReqMail = require('../search/searchhandler.js');
 
 //console.log("verifymail",verifymail);
 
-router.post('/',async function (req,res) {
+router.post('/',async function (req,res,next) {
     const memail = req.body.email;
     const mpass = req.body.pass;
     const contactnumber = req.body.contact;
@@ -21,18 +22,22 @@ router.post('/',async function (req,res) {
     //check for missing input fields
     if(memail.length === 0 || mpass.length === 0 || contactnumber.length === 0 || fname.length === 0 || lname.length === 0 || nic.length === 0){
         return res.status(400).json({
+            code: '400',
             message: "missing required information"
         })
     }
 
     if(mpass.length < 8 ){                  //password length check
         return res.status(400).json({
+            code: '400',
             message:"Invalid lengthed password"
         })
     }
 
     if(memail.indexOf('@') === -1){          //email format check
-       return res.status(400).json({error:"Please Enter a valid email address"});
+       return res.status(400).json({
+           code: '400',
+           error:"Please Enter a valid email address"});
     }
     console.log("create user account", memail,mpass);
     try {
@@ -45,6 +50,7 @@ router.post('/',async function (req,res) {
     }catch (error) {                            //callback error handling of hashing
         console.log("ftyhrtfyftyfty");
         res.status(500).json({
+            code: '500',
             error: error
         });
         throw(error)
@@ -61,11 +67,14 @@ router.post('/',async function (req,res) {
         if (isExisting) {                                                       //result if email already existing
             console.log('existing');
             return res.status(401).json({
+                code: "401",
                 err: "Existing Email. Retry"
             })
         }
     }catch(error){
-        return res.status(400).json({result: "db not existing", error: error})  //callback error handling of the database fetch
+        return res.status(400).json({
+            code: '400',
+            result: "db not existing", error: error})  //callback error handling of the database fetch
     }
     console.log("rkakakakaka");
     /*user = {
@@ -87,6 +96,7 @@ router.post('/',async function (req,res) {
 
             email:memail,
             pass:salthash,
+            userType:'user',
             contact_number:contactnumber,
             name:fname+' '+lname,
             NIC:nic,
@@ -108,13 +118,15 @@ router.post('/',async function (req,res) {
                 code: "400",
                 message: "error in db access"
             })
+
         }
 
     }catch(error){
         console.log(error);
 
-        return res.status(409).json({result:409, error:error.name});
+        return res.status(409).json({code:409, error:error.name});
     }
 });
 
+//next(req,res);
 module.exports = router;

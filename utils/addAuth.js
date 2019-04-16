@@ -21,6 +21,7 @@ function addAuth(email,token){ //adding generated tokens to a collection for ref
 }
 
 function removeAuth(email){ //function used to remove timed out tokens from the dictionary in local storage of server
+    console.log(keydict);
     if(Object.keys(keydict).includes(email)){
         Object.keys(keydict).splice(Object.keys(keydict).indexOf(email),1);
         return {error:'token timeout'};

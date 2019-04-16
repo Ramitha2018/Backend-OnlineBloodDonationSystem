@@ -1,24 +1,27 @@
-var express = require('express');
-var router = express.Router();
-var app = require('../app.js');
-var checkauth = require('../utils/reqAuth.js');
+const express = require('express');
+const router = express.Router();
+const app = require('../app.js');
+const checkauth = require('../utils/reqAuth.js');
 
 router.post('/', async (req, res) => {
     try {
-        var temp = await checkauth(req, res);
+        let temp = await checkauth(req, res);
 
         console.log(temp);
-        if(temp.error === 'token timeout') {
+        if(temp === null){
             return res.status(401).json({
+                code: '401',
+                message:"Invalid token"
+            });
+        }else if(temp.error === 'token timeout') {
+            return res.status(401).json({
+                code: '401',
                 message: 'Token timeout. PLease login to proceed'
             });
         }else if(temp.error === 'invalid token'){
             return res.status(401).json({
+                code: '401',
                 message: 'Invalid token'
-            });
-        }else if(temp === null){
-            return res.status(401).json({
-                message:"Authentication Failure"
             });
         }else {
             req.body.userData = temp;
@@ -28,7 +31,9 @@ router.post('/', async (req, res) => {
         }
     }catch(error){
         console.dir(error);
-        return res.status(400);
+        return res.status(400).json({
+            code:'400'
+        });
 
     }
 });
@@ -95,6 +100,7 @@ async function questionnaire(req,res){
     }
     else if(firstlogindone === '1'){
         return res.status(400).json({
+            code: '400',
             message:"missing required information"
         })
     }
@@ -106,6 +112,7 @@ async function questionnaire(req,res){
             result = await app.db.collection('users').findOneAndUpdate({email:email},{$set:quiz},{projection:{_id : false, pass : false},returnOriginal : false,})
             console.log('4th base')
             return res.status(200).json({
+                code:'200',
                 message:"Success. questionnaire added",
                 updated_doc: result,
                 link:"/home"
@@ -113,6 +120,7 @@ async function questionnaire(req,res){
         }catch(error){
             console.dir(error);
             return res.status(400).json({
+                code:'400',
                 message:"error occured in db connectivity"
             })
         }

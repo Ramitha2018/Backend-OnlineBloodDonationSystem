@@ -1,24 +1,26 @@
-var jwt = require('jsonwebtoken');
-var addauth = require('../utils/addAuth.js');
+const jwt = require('jsonwebtoken');
+const addauth = require('../utils/addAuth.js');
 
 require('dotenv').config();
-var secret = process.env.JWT_KEY; // FROM ENVIRONMENTAL VARIABLES
+const secret = process.env.JWT_KEY; // FROM ENVIRONMENTAL VARIABLES
 
 module.exports = async function auth(req,res){
+    console.log(req.headers);
     try{
-        const token = req.headers.Authorization.split(" ")[1]; /** Add the token under "Authorization bearer" header to the request */
+        const token = req.headers.authorization.split(" ")[1]; /** Add the token under "Authorization bearer" header to the request */
         console.log(token);
         console.log(secret);
-        const decoded = jwt.verify(token, secret);
-        return decoded;
-        //req.userData = decoded;
+        let verify = jwt.verify(token, secret);
+        //console.log(verify);
+        if (!(verify)) {
+            return false;                   // Never gonna be fired.
+        } else{
+            return verify;
+        }
     }catch(error){
         console.dir(error);
-        if(error.name = 'TokenExpiredError'){
-            const token = req.headers.Authorization.split(" ")[1];
-            const userdetail = jwt.decode(token, secret);
-            var email = userdetail.email;
-            return addauth.removeAuth(email);
+        if(error.name === 'TokenExpiredError'){
+            return {error:'token timeout'};
         }else{
             return null;
         }

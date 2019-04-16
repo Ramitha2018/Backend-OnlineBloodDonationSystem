@@ -40,11 +40,11 @@ module.exports = async function send(req,res){
     console.log(mailOptions);
 
     try {
-        x = await smtpTransport.sendMail(mailOptions)// async function(error, response){
+        x = await smtpTransport.sendMail(mailOptions);
         return rand;
 
     }catch(error){
-        console.log('this error?')
+        console.log('this error?');
         console.log(error);
         throw error;
     }

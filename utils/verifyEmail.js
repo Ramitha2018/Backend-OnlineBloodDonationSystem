@@ -25,12 +25,14 @@ router.post('/',async function(req,res){
             var rand = await app.db.collection('users').findOne({email:req.query.mail})
         }catch(error){
             return res.status(400).json({
+                code: '400',
                 message:'db connection error'
             })
         }
         console.log(rand);
         if(!(rand)){
             return res.status(400).json({
+                code:'400',
                 message:'invalid email'
             })
         }
@@ -42,16 +44,17 @@ router.post('/',async function(req,res){
             }catch(error){
                 console.log(error);
                 return res.status(400).json({
+                    code: '400',
                     messsage:'db error'
                 })
             }
             console.log("email is verified");
-            return res.status(200).json({message : "Email has been Successfully verified"});
+            return res.status(200).json({code:'200', message : "Email has been Successfully verified"});
         }
         else
         {
             console.log("email is not verified");
-            return res.status(401).json({ message: "Email is not verified"})
+            return res.status(401).json({ code:'401', message: "Email is not verified"})
         }
     //}
     //else
