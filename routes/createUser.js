@@ -5,17 +5,19 @@ const bcrypt = require('bcryptjs');
 //var mongodb = require('mongodb');
 const app = require("../app.js");
 const sendmail = require('../utils/sendVerifyEmail.js');
-const sendReqMail = require('../search/searchhandler.js');
+
 
 //console.log("verifymail",verifymail);
 
 router.post('/',async function (req,res,next) {
-    const memail = req.body.email;
+    const memail = req.body.email.toLowerCase();
     const mpass = req.body.pass;
     const contactnumber = req.body.contact;
     const fname = req.body.fname;
     const lname = req.body.lname;
     const nic = req.body.NIC;
+    const address = req.body.address;
+    const DOB = req.body.dob;
     const acctype = req.body.type; //PUT THIS SOMEWHERE USEFUL
     var salthash;
 
@@ -61,14 +63,14 @@ router.post('/',async function (req,res,next) {
         //console.log(app);
         //console.log(app.db);
         console.log('exist?')
-        var isExisting = await app.db.collection('users').findOne({"email": memail});   //check for duplicate email addresses in the database
+        var isExisting = await app.db.collection('users').findOne({$or: [{"email": memail},{"NIC": nic}]});   //check for duplicate email addresses in the database
         console.log(isExisting);
         console.log('exist returned?');
         if (isExisting) {                                                       //result if email already existing
             console.log('existing');
             return res.status(401).json({
                 code: "401",
-                err: "Existing Email. Retry"
+                err: "Existing Email or NIC. Retry"
             })
         }
     }catch(error){
@@ -97,7 +99,9 @@ router.post('/',async function (req,res,next) {
             email:memail,
             pass:salthash,
             userType:'user',
+            DOB: DOB,
             contact_number:contactnumber,
+            address: address,
             name:fname+' '+lname,
             NIC:nic,
             isVerified: '0',

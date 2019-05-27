@@ -22,8 +22,11 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node app.js"
   },
   "author": "Perera M.R.S.",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": "10.6.0"
+  }
 }

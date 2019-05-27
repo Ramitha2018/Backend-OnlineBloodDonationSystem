@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const app = require('../app.js');
 const checkauth = require('../utils/reqAuth.js');
+const sendReqMail = require('../search/searchreqhandler.js');
 
 router.post('/', async (req, res) => {
     try {
@@ -40,65 +41,48 @@ router.post('/', async (req, res) => {
 
 async function questionnaire(req,res){
     console.log('dafaq is happening?');
-    var gender = req.body.gendr;
-    var dob = req.body.dob;
-    var permaddr = req.body.permadd;
-    var bloodtype =  req.body.bloodtype;
-    var district = req.body.district;
-    var offiaddr = req.body.offiaddr;
-    var hasdonatedb4 = req.body.donatedb4;
-    var timesdonated = req.body.donatetimes;
-    var lastdonate = req.body.lastdonate;
-    var heartcondition = req.body.heart;
-    var paralysis =  req.body.paralyze;
-    var diabetes = req.body.diabetes;
-    var kidneycondition = req.body.kidney;
-    var bloodcondition = req.body.blood;
-    var Lungcondition = req.body.lung;
-    var fits = req.body.fit;
-    var livercondition = req.body.liver;
-    var cancer = req.body.cancer;
-    var ispregnant = req.body.pregnant;
-    var hiv = req.body.hiv;
-    var donatefreq = req.body.frequency;
-    var availability = req.body.available;
-    var firstlogindone = req.body.firstlogin || '0';
-    console.log('2nd base')
-    console.log(req.body.dob);
-    var quiz ={
+    const gender = req.body.gender;
+    const bloodtype =  req.body.bloodtype;
+    const district = req.body.district;
+    const currenthealth = req.body.currenthealth;
+    const pasthealth = req.body.pasthealth;
+    const recentdonate = req.body.recentdonate;
+    const availability = req.body.available;
+    const firstlogindone = req.body.firstlogin || '0';
+    let eligible;
+    console.log('2nd base');
+
+    // Setting the eligibility variable depending on the user's input
+    if(currenthealth && pasthealth && recentdonate) {
+        if (currenthealth == '1' & pasthealth == '0' & recentdonate == '0'){
+            eligible = '1';
+        }
+        else {
+            eligible = '0';
+        }
+    }
+
+    let quiz ={
         gender : gender,
-        DOB : dob,
-        permaddr : permaddr,
         blood_type : bloodtype,
         district : district,
-        offiaddr : offiaddr,
-        donatedB4 : hasdonatedb4,
-        timesdonated :timesdonated,
-        lastdonation : lastdonate,
-        heart : heartcondition,
-        paralysis : paralysis,
-        diabetes : diabetes,
-        kidney : kidneycondition,
-        blood : bloodcondition,
-        lung : Lungcondition,
-        fit : fits,
-        liver : livercondition,
-        cancer :cancer,
-        pregnancy : ispregnant,
-        HIV : hiv,
-        donation_frequency : donatefreq,
-        Available : availability,
-        firstlogindone : '1'
+        currenthealth : currenthealth,
+        pasthealth : pasthealth,
+        recentdonate : recentdonate,
+        available : availability,
+        firstlogindone : '1',
+        eligible : eligible
     };
     console.log(quiz);
 
-    var email = req.body.userData.email;
-    console.log(email)
-    if(firstlogindone === '1' & (gender === 'M' | gender === 'F') & dob & district & donatefreq ){
+    const email = req.body.userData.email;
+    console.log(email);
+// Check for empty inputs
+    if(firstlogindone === '1' & (gender === 'Male' | gender === 'Female') & district & bloodtype ){
 
 
     }
-    else if(firstlogindone === '1'){
+    else if(firstlogindone === '1' || firstlogindone === true){
         return res.status(400).json({
             code: '400',
             message:"missing required information"
@@ -108,9 +92,16 @@ async function questionnaire(req,res){
     else{
         try{
             console.log('3rd base')
+// Updating the questionnaire in the user database
+            result = await app.db.collection('users').findOneAndUpdate({email:email},{$set:quiz},{projection:{pass : false},returnOriginal : false,})
+            console.log('4th base');
+            console.log(result);
+// The mail sending to users' requests
+            if (availability == '1' & eligible == '1') {
+                console.log(res_searchReq = sendReqMail(req,res));               // The parallel process of matching search requests and sending notifications to users.
 
-            result = await app.db.collection('users').findOneAndUpdate({email:email},{$set:quiz},{projection:{_id : false, pass : false},returnOriginal : false,})
-            console.log('4th base')
+            }
+// Response on Success!
             return res.status(200).json({
                 code:'200',
                 message:"Success. questionnaire added",

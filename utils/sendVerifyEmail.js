@@ -26,15 +26,20 @@ module.exports = async function send(req,res){
 
     console.log('did it get here?');
 
-    var rand = Math.floor((Math.random() * 100) + 54);            // generating a random number
-    var host = req.headers.host;
-    var mail = req.body.email;
-    var link = "http://"+host+"/verify?id="+rand+'&mail='+req.body.email;
-    var mailOptions={
+    const rand = Math.floor((Math.random() * 100) + 54);            // generating a random number
+    const host = req.headers.host;
+    const mail = req.body.email.toLowerCase();
+    const link = "http://"+host+"/verify?id="+rand+'&mail='+req.body.email;
+    const mailOptions={
         from : process.env.SMTP_USER,
-        to : req.body.email,
+        to : req.body.email.toLowerCase(),
         subject : "Please confirm your Email account",
-        html : "Hello,<br> Please Click on the link to verify your email.<br><a href="+link+">Click here to verify</a>"
+        html : "Hello,<br> Please Click on the Button to verify your email.<br><form method= \"post\" action="+link+" class=\"inline\">\n" +
+        "  <input type=\"hidden\" name=\"extra_submit_param\" value=\"extra_submit_value\">\n" +
+        "  <button type=\"submit\" name=\"submit_param\" value=\"submit_value\" class=\"link-button\">\n" +
+        "    The Button\n" +
+        "  </button>\n" +
+        "</form>"
     };
 
     console.log(mailOptions);
