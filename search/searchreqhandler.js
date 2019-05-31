@@ -4,25 +4,49 @@ const app = require('../app.js');
 const sendReqMail = require('./sendReqNotification.js');
 
 module.exports = async function checkReq(req,res) {
-    const newusermail = req.body.email;
+
     const newuserbloodtype = req.body.bloodtype;
     const newuserdistrict = req.body.district;
+    console.log(newuserbloodtype);
+    console.log(newuserdistrict);
+
+    let requests;
     let requesteremail;
+    let email;
+    let result = [];
+
     try {
-        requests = await app.db.collection('SeekerRequest').find({blood_type: newuserbloodtype, ditrict: newuserdistrict},{field: {email : 1}});
-        if(requests.length === 0){
+        temp = await app.db.collection('SeekerRequests').find({bloodtype: newuserbloodtype, district: newuserdistrict},{projection:{req_email: true,_id: false}}).then(tmp => {
+            //console.log('1',tmp);
+            requests = tmp;
+            return new Promise(resolve => {
+                resolve(requests)
+            })
+        }).then(s => {
+            //console.log('2', s);
+
+        });
+
+        console.log(requests,'requests');
+        if(!(requests)){
+            console.log('failed');
             return false
         }else{
-            for (let email in requests){
-                requesteremail = email;
+            requests.forEach(async function (elem){
+                console.log(elem);
+                requesteremail = elem.req_email;
                 req.body.reqmail = requesteremail;
-                return result = await sendReqMail(req);
+                result.push(await sendReqMail(req));
+                });
+            console.log(result);
 
-            }
+
+
         }
+        return result
 
     }catch(error){
-        console.dir(erre);
+        console.dir(error);
         return {message:'DB access error'}
     }
 }

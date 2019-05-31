@@ -9,20 +9,20 @@ require('dotenv').config();
 router.post('/',async function(req,res) {
 
     let today = new Date();
-    //lastLoginDate = today.getDate();
     lastLoginTime = today.getTime();
-    //console.log(lastLoginDate);
     console.log(lastLoginTime);
 
     console.log(req.get('protocol'));
-    const memail = req.body.email;
+    const memail = req.body.email.toLowerCase();
     const mpass = req.body.pass;
     let mtype;
-    //var salthash;
-    var userpass;
-    var user;
-    const secretkey = process.env.JWT_KEY; //MUST BE MOVED TO A SEPARATE FILE CONTAINING ENVIRONMENT VARIABLES
-   // console.log(req)
+
+    let userpass;
+    let user;
+
+    let userData;
+    const secretkey = process.env.JWT_KEY;
+
     console.log('auth', memail, mpass);
 
     if (memail.indexOf('@') === -1) { //Checking for valid email address format
@@ -35,8 +35,8 @@ router.post('/',async function(req,res) {
         console.log(user);
         console.log("-----------")
         if (user) {
-            if(user.isVerified == 0){           // Check for Email verification
-                return res.code(303).json({
+            if(user.isVerified == 0 || user.isVerified === false){           // Check for Email verification
+                return res.status(200).json({
                     code:'303',
                     message: 'Email not verified'
                 })
@@ -47,23 +47,24 @@ router.post('/',async function(req,res) {
         }
         else {
             console.log("this one?")                //response in case of user email not existing in DB
-            return res.status(404).json({
-                code: '404',
+            return res.status(200).json({
+                code: '401',
                 error: "Authentication Failed"});
         }
 
 
     } catch (error) {
-        return req.status(400).json({
+        console.log(error);
+        return res.status(400).json({
             code: '400',
             error: "DB Connection Error"}) //handling error of db connectivity problems
     }
     try {
-        var compare = await bcrypt.compare(mpass, userpass); //comparing users given password with the hashed stored password in the DB
+        let compare = await bcrypt.compare(mpass, userpass); //comparing users given password with the hashed stored password in the DB
         console.log(compare);
         if (!(compare)) {
             console.log("that one?");
-            return res.status(401).json({           //result of password mismatch
+            return res.status(200).json({           //result of password mismatch
                 code: '401',
                 error: "Authentication Failed"
             });
@@ -81,7 +82,8 @@ router.post('/',async function(req,res) {
                 }
             );
             try{
-                ret = await app.db.collection('users').findOneAndUpdate({email:memail},{$set:{'lastLoginTime': lastLoginTime}})      //The last login time is updated for future references
+                ret = await app.db.collection('users').findOneAndUpdate({email:memail},{$set:{'lastLoginTime': lastLoginTime}}, {projection:{firstlogindone: false, pass: false, verify_id: false}, returnOriginal: false});      //The last login time is updated for future references
+                userData = ret;
                 console.log(ret);
             }catch(err){
                 console.dir(err)
@@ -94,21 +96,24 @@ router.post('/',async function(req,res) {
 
             console.log(user);
             console.log(user.firstlogindone);
-            if(user.firstlogindone == '1'){
+            if(user.firstlogindone == '1' || user.firstlogindone === true){
 
                 return res.status(200).json({           //passing the success and the token to the user.
                     code: '200',
                     message: "Authentication Successful",
-                    token: token
+                    token: token,
+                    userType:user.userType,
+                    userData: userData.value
                 });
             }
-            else if(user.firstlogindone == '0'){                                       //if the first login of the user redirecting to the  questionnaire page
+            else if(user.firstlogindone == '0' || user.firstlogindone === false){                                       //if the first login of the user redirecting to the  questionnaire page
                 return res.status(201).json({
                     code:'201',
                     token: token,
                     message: "redirect to the link. Add firstlogindone to the body",
+                    userType:user.userType,
                     link: "/quiz",
-                    firstlogindone: '0'
+                    userData: userData.value
                 })
             }
 

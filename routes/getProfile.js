@@ -6,15 +6,17 @@ router = express.Router();
 
 router.post('/', async (req, res) => {
     try {
-        var temp = await checkauth(req, res);
+        let temp = await checkauth(req, res);   // Token authentication
 
         console.log(temp);
         if(temp.error === 'token timeout') {
             return res.status(401).json({
+                code: '401',
                 message: 'Token timeout. PLease login to proceed'
             });
         }else if(temp.error === 'invalid token'){
             return res.status(401).json({
+                code: '401',
                 message: 'Invalid token'
             });
         }else if(temp === null){
@@ -29,7 +31,9 @@ router.post('/', async (req, res) => {
         }
     }catch(error){
         console.dir(error);
-        return res.status(400);
+        return res.status(400).json({
+            code:'400'
+        })
     }
 });
 
@@ -57,16 +61,18 @@ async function getUserInfo(req,res) {
     var donatefreq;
     var availability; */
 
-    var email = req.body.email;
+    const email = req.body.userData.email.toLowerCase();
     try {
-        result = await app.db.collection('users').findOne({email: email}, {firstlogindone: false});
+        result = await app.db.collection('users').findOne({email: email}, {projection:{firstlogindone: false, pass: false, verify_id: false}});
         return  res.status(200).json({
+            code:'200',
             result: result,
             message: 'Success'
         })
     }catch(error){
         console.dir(error);
         return res.status(400).json({
+            code:'400',
             message: 'DB connection error'
         });
 

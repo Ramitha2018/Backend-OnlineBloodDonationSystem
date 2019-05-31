@@ -5,7 +5,7 @@ const checkauth = require('../utils/reqAuth.js');
 
 router.post('/', async (req, res) => {
     try {
-        let temp = await checkauth(req, res);
+        let temp = await checkauth(req, res);       // Token authentication
 
         console.log(temp);
         if(temp === null){
@@ -26,8 +26,7 @@ router.post('/', async (req, res) => {
         }else if(temp.type === 'admin'){                /** Admin creation must be done manually at the server side with all respective fields of records
                                                             such as isVerified = '1', firstlogindone = '1'*/
             req.body.userData = temp;
-            console.log('1st base');
-            //console.log(req);
+
             result = await deleteUser(req, res)
         }
     }catch(error){
@@ -40,14 +39,14 @@ router.post('/', async (req, res) => {
 });
 
 async function deleteUser(req,res){
-    let mail = req.body.targetMail;
+    let mail = req.body.email.toLowerCase() || req.body.userData.email;
     let extra = req.body.reason;
     console.log(mail);
-    try{
+    try{                    // Finding the user based on the email
         result = await app.db.collection('users').findOneAndDelete({email:mail});
         console.log(result);
         if(!(result.value)){
-            return res.status(400).json({
+            return res.status(200).json({
                 code:'400',
                 message: 'User not found'
             })

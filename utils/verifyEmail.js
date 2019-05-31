@@ -49,7 +49,7 @@ router.post('/',async function(req,res){
                 })
             }
             console.log("email is verified");
-            return res.status(200).json({code:'200', message : "Email has been Successfully verified"});
+            return res.status(200).json("Email Verified. Please login to proceed");
         }
         else
         {
