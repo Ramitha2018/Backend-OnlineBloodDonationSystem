@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
 });
 
 async function deleteUser(req,res){
-    let mail = req.body.email.toLowerCase() || req.body.userData.email;
+    let mail = req.body.targetMail;
     let extra = req.body.reason;
     console.log(mail);
     try{                    // Finding the user based on the email
